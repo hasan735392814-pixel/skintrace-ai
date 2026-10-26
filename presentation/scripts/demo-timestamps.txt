@@ -1,0 +1,17 @@
+SKINTRACE AI — OFFICIAL HACKATHON DEMO VIDEO TIMESTAMPS
+===========================================================
+Track: YouCam API Skin AI & eCommerce VTO Hackathon
+Duration: ~2 Minutes (Within 1-3 Minute Hackathon Guidelines)
+Safety: Zero API Consumption Mode Enforced (40/40 Units Safe)
+
+[0:00 - 0:24] Scene 1: Introduction & Hackathon Mission
+[0:24 - 0:40] Scene 2: Landing Page & Architectural Pillars
+[0:40 - 0:56] Scene 3: Personalized Skincare Dashboard
+[0:56 - 1:15] Scene 4: Local Skin Analysis & Safe Simulation
+[1:15 - 1:34] Scene 5: Cosmetic Results & Interactive Face Map
+[1:34 - 1:50] Scene 6: Longitudinal Skin Journey & Analytics
+[1:50 - 2:06] Scene 7: Morning & Evening Routine Tracker
+[2:06 - 2:22] Scene 8: Arabic RTL & Global Inclusivity
+[2:22 - 2:37] Scene 9: Settings, Security Safeguards & Official YouCam Architecture
+
+Total Video Duration: 2:37 (~157 seconds)

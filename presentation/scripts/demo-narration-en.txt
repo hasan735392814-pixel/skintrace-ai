@@ -1,0 +1,27 @@
+--- Scene 1: Introduction & Hackathon Mission [0:00 - 0:24] ---
+Welcome to SkinTrace AI, built for the YouCam API Skin AI and eCommerce Virtual Try-On Hackathon. SkinTrace AI empowers users to understand visible skin characteristics, track progress over time, and build consistent daily skincare habits. The platform operates in zero API consumption demo mode, protecting all forty YouCam bonus credits.
+
+--- Scene 2: Landing Page & Architectural Pillars [0:24 - 0:40] ---
+Our luxury landing experience highlights our core architectural pillars: in-browser local analysis, longitudinal progress tracking, daily routine compliance, and seamless eCommerce readiness, adhering to high-end cosmetic design standards.
+
+--- Scene 3: Personalized Skincare Dashboard [0:40 - 0:56] ---
+The dashboard gives users an immediate snapshot of their barrier health. Cards display overall cosmetic health, routine adherence streaks, and upcoming rituals. The top security banner confirms zero API units consumed.
+
+--- Scene 4: Local Skin Analysis & Safe Simulation [0:56 - 1:15] ---
+In the analysis studio, users can upload photos or use live camera capture with alignment guides. Here, we load our standardized studio portrait. When analyzed, our simulated engine processes visible texture, pore visibility, and redness harmony entirely in local browser memory.
+
+--- Scene 5: Cosmetic Results & Interactive Face Map [1:15 - 1:34] ---
+The results view displays an overall score of eighty-four out of one hundred, with balanced hydration and radiance. The interactive face map lets users click targeted observation markers. Individual cosmetic metrics offer gentle care guidance, which can be added directly to the daily routine.
+
+--- Scene 6: Longitudinal Skin Journey & Analytics [1:34 - 1:50] ---
+The Skin Journey section provides multi-week progress tracking. An interactive trajectory chart visualizes overall dermal vitality alongside dedicated filters for texture and redness, complemented by chronological milestone cards.
+
+--- Scene 7: Morning & Evening Routine Tracker [1:50 - 2:06] ---
+Consistency drives results. SkinTrace AI features separate morning and evening routines with independent completion states. Users can check off steps in real time, monitor completion progress, or add custom skincare steps.
+
+--- Scene 8: Arabic RTL & Global Inclusivity [2:06 - 2:22] ---
+Engineered for global reach, SkinTrace AI offers full bidirectional internationalization. With one click, the platform switches to a native Arabic right-to-left layout with Cairo typography, translated metrics, and mirrored navigation.
+
+--- Scene 9: Settings, Security Safeguards & Official YouCam Architecture [2:22 - 2:37] ---
+Finally, Settings showcases our strict zero-consumption guard. We have documented the official Perfect Corp asynchronous task and file upload pipeline, ensuring SkinTrace AI is fully prepared for live deployment.
+

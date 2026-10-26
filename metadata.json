@@ -1,0 +1,6 @@
+{
+  "name": "SKINTRACE AI — Premium AI Skincare Tracking Platform",
+  "description": "Understand your skin, track visible progress over time, and maintain daily skincare routines with a privacy-first, zero-API-consumption demo experience for the YouCam API Skin AI Hackathon.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
