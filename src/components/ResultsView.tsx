@@ -121,10 +121,11 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             <div className="mt-2 p-3 bg-white/80 rounded-xl border border-[#DDD5C7] font-mono text-[10px] space-y-1 text-[#2D3B33] overflow-x-auto">
               <div><span className="text-[#717E77]">Provider:</span> YouCam Skin AI v2.1 (Perfect Corp)</div>
               <div><span className="text-[#717E77]">Target Host:</span> https://yce-api-01.makeupar.com</div>
-              <div><span className="text-[#717E77]">Task Creation Endpoint:</span> POST /s2s/v2.1/task/skin-analysis</div>
+              <div><span className="text-[#717E77]">File Registration:</span> POST /s2s/v2.0/file (Binary PUT to presigned URL)</div>
+              <div><span className="text-[#717E77]">Task Creation Endpoint:</span> POST /s2s/v2.1/task/skin-analysis (src_file_id, dst_actions)</div>
               <div><span className="text-[#717E77]">Task Polling Endpoint:</span> GET /s2s/v2.1/task/skin-analysis/{'{task_id}'}</div>
               <div><span className="text-[#717E77]">Task ID:</span> {result.youcamTaskId || 'yc21_demo_simulated_stream'}</div>
-              <div><span className="text-[#717E77]">Features Evaluated:</span> texture, pores, redness, spots, moisture, radiance, skin_age, skin_type</div>
+              <div><span className="text-[#717E77]">dst_actions Evaluated:</span> texture, pore, redness, spot, moisture, radiance, wrinkle, skin_age, skin_type</div>
               <div><span className="text-[#717E77]">Safe Shutter Status:</span> {result.isRealApiResult ? 'DISENGAGED (Live API Mode)' : 'ENGAGED (DEMO_MODE=true Safeguard)'}</div>
             </div>
           </details>

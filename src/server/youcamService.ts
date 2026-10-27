@@ -21,18 +21,21 @@
 
 import { SkinAnalysisResult, SkinMetric } from '../types/skincare.ts';
 
-// Official YouCam v2.1 Supported Features
+// Official YouCam v2.1 Supported SD Action IDs
 export type YouCamFeature =
-  | 'spots'
-  | 'wrinkles'
   | 'texture'
-  | 'dark_circles'
-  | 'redness'
-  | 'oiliness'
-  | 'moisture'
+  | 'pore'
   | 'pores'
-  | 'eye_bags'
+  | 'redness'
+  | 'spot'
+  | 'spots'
+  | 'moisture'
   | 'radiance'
+  | 'wrinkle'
+  | 'wrinkles'
+  | 'dark_circles'
+  | 'eye_bags'
+  | 'oiliness'
   | 'skin_age'
   | 'skin_type';
 
@@ -56,26 +59,46 @@ export interface YouCamV21FeatureMetric {
   roi?: Array<{ x: number; y: number }>;
 }
 
+export interface YouCamOutputItem {
+  type: string;
+  ui_score?: number;
+  raw_score?: number;
+  mask_urls?: string[];
+}
+
 export interface YouCamV21TaskResult {
   task_id: string;
-  status: 'success' | 'failed' | 'running' | 'created';
+  status?: 'success' | 'failed' | 'running' | 'created';
+  data?: {
+    task_status?: 'success' | 'failed' | 'running' | 'created';
+    results?: {
+      output?: YouCamOutputItem[];
+      skin_age?: number;
+      skin_type?: {
+        type?: string;
+        confidence?: number;
+      };
+    };
+    skin_age?: number;
+    skin_type?: {
+      type?: string;
+      confidence?: number;
+    };
+  };
+  results?: {
+    output?: YouCamOutputItem[];
+    skin_age?: number;
+    skin_type?: {
+      type?: string;
+      confidence?: number;
+    };
+  };
   skin_age?: number;
   skin_type?: {
-    type: 'Normal' | 'Combination' | 'Dry' | 'Oily' | 'Sensitive';
-    confidence: number;
+    type?: string;
+    confidence?: number;
   };
-  features?: {
-    texture?: YouCamV21FeatureMetric;
-    pores?: YouCamV21FeatureMetric;
-    redness?: YouCamV21FeatureMetric;
-    spots?: YouCamV21FeatureMetric;
-    moisture?: YouCamV21FeatureMetric;
-    oiliness?: YouCamV21FeatureMetric;
-    wrinkles?: YouCamV21FeatureMetric;
-    dark_circles?: YouCamV21FeatureMetric;
-    eye_bags?: YouCamV21FeatureMetric;
-    radiance?: YouCamV21FeatureMetric;
-  };
+  features?: Record<string, { score?: number; level?: string }>;
 }
 
 export interface YouCamServiceResponse {
@@ -96,11 +119,24 @@ export class YouCamService {
   public static readonly TASK_CREATE_ENDPOINT = '/s2s/v2.1/task/skin-analysis';
   public static readonly TASK_POLL_ENDPOINT_PREFIX = '/s2s/v2.1/task/skin-analysis/';
 
+  // Official Standard Definition (SD) diagnostic actions
+  public static readonly OFFICIAL_SD_ACTIONS = [
+    'texture',
+    'pore',
+    'redness',
+    'spot',
+    'moisture',
+    'radiance',
+    'wrinkle',
+    'skin_age',
+    'skin_type'
+  ];
+
   public static readonly DEFAULT_FEATURES: YouCamFeature[] = [
     'texture',
-    'pores',
+    'pore',
     'redness',
-    'spots',
+    'spot',
     'moisture',
     'radiance',
     'skin_age',
@@ -116,9 +152,11 @@ export class YouCamService {
 
   /**
    * Secret reader: strictly server-side, never returned to client.
+   * Supports either YOUCAM_API_KEY or YOUCAM_SECRET_KEY.
    */
   private static getApiKey(): string | undefined {
-    return process.env.YOUCAM_API_KEY;
+    const key = (process.env.YOUCAM_API_KEY || process.env.YOUCAM_SECRET_KEY || '').trim();
+    return key.length > 0 && key !== 'demo-placeholder' ? key : undefined;
   }
 
   /**
@@ -231,12 +269,21 @@ export class YouCamService {
   public static getSystemStatus() {
     const isDemo = this.isDemoMode();
     const rawKey = this.getApiKey();
-    const hasKey = Boolean(rawKey && rawKey.trim().length > 0 && rawKey !== 'demo-placeholder');
+    const hasKey = Boolean(rawKey && rawKey.length > 0);
+    const detectedName = hasKey
+      ? (process.env.YOUCAM_API_KEY && process.env.YOUCAM_API_KEY.trim() !== 'demo-placeholder' ? 'YOUCAM_API_KEY' : 'YOUCAM_SECRET_KEY')
+      : 'none';
+
+    const rawEnv = (process.env.YOUCAM_API_KEY || process.env.YOUCAM_SECRET_KEY || '').trim();
+    const isPlaceholder = rawEnv === 'demo-placeholder';
 
     return {
       demoMode: isDemo,
       apiKeyConfigured: hasKey,
+      placeholderDetected: isPlaceholder,
+      liveExecutionBlocked: isDemo || !hasKey,
       realExecutionAllowed: !isDemo && hasKey,
+      secretSourceDetected: hasKey ? detectedName : (isPlaceholder ? 'placeholder_only' : 'none'),
       bonusUnitsProtected: 40,
       unitsConsumed: 0,
       guardEnforced: true,
@@ -258,14 +305,39 @@ export class YouCamService {
     imageUrl: string,
     isDemo: boolean
   ): SkinAnalysisResult {
+    // 1. Check for official Perfect Corp output array
+    const outputList: YouCamOutputItem[] =
+      raw.data?.results?.output ||
+      raw.results?.output ||
+      [];
+
+    const maskMap: Record<string, string[]> = {};
+    const scoreMap: Record<string, number> = {};
+
+    for (const item of outputList) {
+      if (item.type) {
+        const score = typeof item.ui_score === 'number'
+          ? Math.round(item.ui_score)
+          : typeof item.raw_score === 'number'
+            ? Math.round(item.raw_score)
+            : undefined;
+        if (score !== undefined) {
+          scoreMap[item.type] = score;
+        }
+        if (item.mask_urls && Array.isArray(item.mask_urls) && item.mask_urls.length > 0) {
+          maskMap[item.type] = item.mask_urls;
+        }
+      }
+    }
+
     const features = raw.features || {};
     
-    const textureScore = features.texture?.score ?? 84;
-    const poresScore = features.pores?.score ?? 82;
-    const rednessScore = features.redness?.score ?? 85;
-    const toneScore = features.radiance?.score ?? 86;
-    const spotsScore = features.spots?.score ?? 88;
-    const hydrationScore = features.moisture?.score ?? 81;
+    const textureScore = scoreMap['texture'] ?? features.texture?.score ?? 84;
+    const poresScore = scoreMap['pore'] ?? scoreMap['pores'] ?? features.pores?.score ?? 82;
+    const rednessScore = scoreMap['redness'] ?? features.redness?.score ?? 85;
+    const toneScore = scoreMap['radiance'] ?? features.radiance?.score ?? 86;
+    const spotsScore = scoreMap['spot'] ?? scoreMap['spots'] ?? features.spots?.score ?? 88;
+    const hydrationScore = scoreMap['moisture'] ?? features.moisture?.score ?? 81;
 
     const overallScore = Math.round(
       (textureScore + poresScore + rednessScore + toneScore + spotsScore) / 5
@@ -354,7 +426,11 @@ export class YouCamService {
       minute: '2-digit'
     });
 
-    const skinType = raw.skin_type?.type || (overallScore > 84 ? 'Normal' : 'Combination');
+    const rawSkinType =
+      raw.data?.results?.skin_type?.type ||
+      raw.results?.skin_type?.type ||
+      raw.skin_type?.type;
+    const skinType = (rawSkinType as any) || (overallScore > 84 ? 'Normal' : 'Combination');
 
     return {
       id: raw.task_id || `youcam_scan_${Date.now()}`,
@@ -388,12 +464,13 @@ export class YouCamService {
       isRealApiResult: !isDemo,
       apiProvider: 'YouCam Skin AI v2.1',
       rawApiFeatures: {
-        texture: { score: textureScore, level: features.texture?.level || 'Optimal' },
-        pores: { score: poresScore, level: features.pores?.level || 'Refined' },
-        redness: { score: rednessScore, level: features.redness?.level || 'Calm' },
-        spots: { score: spotsScore, level: features.spots?.level || 'Clear' },
-        moisture: { score: hydrationScore, level: features.moisture?.level || 'Balanced' }
-      }
+        texture: { score: textureScore, level: features.texture?.level || (textureScore >= 80 ? 'Optimal' : 'Moderate') },
+        pores: { score: poresScore, level: features.pores?.level || (poresScore >= 80 ? 'Refined' : 'Noticeable') },
+        redness: { score: rednessScore, level: features.redness?.level || (rednessScore >= 80 ? 'Calm' : 'Visible') },
+        spots: { score: spotsScore, level: features.spots?.level || (spotsScore >= 80 ? 'Clear' : 'Scattered') },
+        moisture: { score: hydrationScore, level: features.moisture?.level || (hydrationScore >= 80 ? 'Balanced' : 'Dry') }
+      },
+      maskUrls: Object.keys(maskMap).length > 0 ? maskMap : undefined
     };
   }
 
@@ -466,7 +543,12 @@ export class YouCamService {
       if (request.imageUrl) {
         // Direct public URL input mode
         taskCreationPayload = {
-          features: request.analysisFeatures || this.DEFAULT_FEATURES,
+          src_file_url: request.imageUrl,
+          dst_actions: this.OFFICIAL_SD_ACTIONS,
+          miniserver_args: {
+            enable_mask_overlay: true
+          },
+          features: this.OFFICIAL_SD_ACTIONS,
           image: {
             url: request.imageUrl
           }
@@ -497,6 +579,12 @@ export class YouCamService {
 
         if (!fileRegResponse.ok) {
           const fileErrText = await fileRegResponse.text();
+          if (fileRegResponse.status === 401 || fileRegResponse.status === 403) {
+            throw new Error(`AUTH_ERROR: Invalid or unauthorized YouCam API credentials for File API [HTTP ${fileRegResponse.status}].`);
+          }
+          if (fileRegResponse.status === 400) {
+            throw new Error(`VALIDATION_ERROR: YouCam File API rejected file metadata [HTTP 400]: ${fileErrText}`);
+          }
           throw new Error(`YouCam File Registration Failed [HTTP ${fileRegResponse.status}]: ${fileErrText}`);
         }
 
@@ -524,12 +612,17 @@ export class YouCamService {
         });
 
         if (!uploadResponse.ok) {
-          throw new Error(`Binary image upload to presigned URL failed [HTTP ${uploadResponse.status}].`);
+          throw new Error(`Binary image upload to presigned storage failed [HTTP ${uploadResponse.status}].`);
         }
 
-        // Step 4: Construct task payload using registered file_id
+        // Step 4: Construct task payload using registered file_id & official dst_actions
         taskCreationPayload = {
-          features: request.analysisFeatures || this.DEFAULT_FEATURES,
+          src_file_id: fileInfo.file_id,
+          dst_actions: this.OFFICIAL_SD_ACTIONS,
+          miniserver_args: {
+            enable_mask_overlay: true
+          },
+          features: this.OFFICIAL_SD_ACTIONS,
           image: {
             file_id: fileInfo.file_id
           }
@@ -549,6 +642,15 @@ export class YouCamService {
 
       if (!createResponse.ok) {
         const errorText = await createResponse.text();
+        if (createResponse.status === 401 || createResponse.status === 403) {
+          throw new Error(`AUTH_ERROR: Invalid or unauthorized YouCam API credentials [HTTP ${createResponse.status}].`);
+        }
+        if (createResponse.status === 400) {
+          throw new Error(`VALIDATION_ERROR: YouCam rejected task parameters [HTTP 400]: ${errorText}`);
+        }
+        if (createResponse.status === 429) {
+          throw new Error(`RATE_LIMIT_ERROR: YouCam API rate limit reached.`);
+        }
         throw new Error(`YouCam v2.1 Task Creation Failed [HTTP ${createResponse.status}]: ${errorText}`);
       }
 
@@ -572,12 +674,29 @@ export class YouCamService {
         });
 
         if (pollResponse.ok) {
-          const pollData = (await pollResponse.json()) as YouCamV21TaskResult;
-          if (pollData.status === 'success') {
-            finalTaskResult = pollData;
+          const pollData = (await pollResponse.json()) as any;
+          const status = pollData.data?.task_status || pollData.task_status || pollData.status;
+
+          if (status === 'success') {
+            finalTaskResult = {
+              task_id: taskId,
+              status: 'success',
+              data: pollData.data,
+              results: pollData.data?.results || pollData.results,
+              skin_age: pollData.data?.results?.skin_age ?? pollData.data?.skin_age ?? pollData.skin_age,
+              skin_type: pollData.data?.results?.skin_type ?? pollData.data?.skin_type ?? pollData.skin_type,
+              features: pollData.features || pollData.data?.features
+            };
             break;
-          } else if (pollData.status === 'failed') {
-            throw new Error(`YouCam v2.1 Task Failed during analysis processing.`);
+          } else if (status === 'failed') {
+            const errDetail = pollData.error || pollData.data?.error || 'Task failed during skin analysis processing.';
+            throw new Error(`YouCam v2.1 Task Failed: ${errDetail}`);
+          }
+        } else {
+          if (pollResponse.status === 401 || pollResponse.status === 403) {
+            throw new Error(`AUTH_ERROR: YouCam API key rejected during polling [HTTP ${pollResponse.status}].`);
+          } else if (pollResponse.status === 429) {
+            throw new Error(`RATE_LIMIT_ERROR: YouCam rate limit reached during task polling.`);
           }
         }
       }

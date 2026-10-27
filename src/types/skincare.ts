@@ -49,6 +49,7 @@ export interface SkinAnalysisResult {
   isRealApiResult?: boolean;
   apiProvider?: string;
   rawApiFeatures?: Record<string, { score: number; level?: string }>;
+  maskUrls?: Record<string, string[]>;
 }
 
 export interface RoutineStep {

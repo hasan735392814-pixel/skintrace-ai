@@ -241,7 +241,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               <div>
                 <div className="text-base font-semibold text-[#1B382B]">
-                  {completedDailyTasks} of {totalDailyTasks} {t.dashboard.routineCompleted}
+                  {lang === 'ar'
+                    ? `${completedDailyTasks} من أصل ${totalDailyTasks} مكتمل اليوم`
+                    : `${completedDailyTasks} of ${totalDailyTasks} ${t.dashboard.routineCompleted}`}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-[#637068] mt-1 font-mono">
                   <span className="flex items-center gap-1">
@@ -297,7 +299,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => onNavigate('journey')}
                 className="text-xs font-semibold text-[#1B382B] hover:underline"
               >
-                View All ({history.length})
+                {lang === 'ar' ? `عرض الكل (${history.length})` : `View All (${history.length})`}
               </button>
             </div>
 
@@ -313,7 +315,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 >
                   <img
                     src={item.imageUrl}
-                    alt="Scan thumbnail"
+                    alt="Skin analysis preview"
                     referrerPolicy="no-referrer"
                     className="w-11 h-11 rounded-lg object-cover bg-[#E9E3D8] shrink-0"
                   />
@@ -322,7 +324,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       {item.dateFormatted}
                     </p>
                     <p className="text-[11px] text-[#6E7B73]">
-                      Vitality: {item.overallScore}/100 · {item.skinType}
+                      {lang === 'ar'
+                        ? `الحيوية: ${item.overallScore}/100 · ${item.skinType}`
+                        : `Vitality: ${item.overallScore}/100 · ${item.skinType}`}
                     </p>
                   </div>
                   <Eye className="w-4 h-4 text-[#98A59D] group-hover:text-[#1B382B] transition-transform" />
@@ -331,7 +335,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               {history.length === 0 && (
                 <p className="text-xs text-[#7A877F] italic text-center py-2">
-                  No scan history recorded.
+                  {lang === 'ar' ? 'لا توجد تحليلات مسجلة بعد.' : 'No skin analyses recorded yet.'}
                 </p>
               )}
             </div>

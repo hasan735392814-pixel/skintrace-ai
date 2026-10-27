@@ -62,6 +62,10 @@ async function startServer() {
         statusCode = 403;
         errorCode = 'UNAUTHORIZED';
         clientMessage = 'Authorization failed. Please ensure permissions are granted.';
+      } else if (rawMessage.startsWith('RATE_LIMIT_ERROR:')) {
+        statusCode = 429;
+        errorCode = 'RATE_LIMIT_EXCEEDED';
+        clientMessage = 'YouCam API request limit reached. Please wait a moment and try again.';
       } else if (rawMessage.startsWith('CONFIG_ERROR:')) {
         statusCode = 500;
         errorCode = 'CONFIGURATION_ERROR';

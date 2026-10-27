@@ -107,7 +107,9 @@ export const RoutineView: React.FC<RoutineViewProps> = ({
               </div>
             </div>
             <p className="text-xs text-[#5D6B63]">
-              {completedSteps} of {totalSteps} {activeTab === 'morning' ? 'morning' : 'evening'} steps completed today.
+              {lang === 'ar'
+                ? `${completedSteps} من أصل ${totalSteps} خطوات ${activeTab === 'morning' ? 'صباحية' : 'مسائية'} مكتملة اليوم.`
+                : `${completedSteps} of ${totalSteps} ${activeTab === 'morning' ? 'morning' : 'evening'} steps completed today.`}
             </p>
           </div>
 

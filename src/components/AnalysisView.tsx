@@ -180,7 +180,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ onAnalysisComplete, 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             imageBase64: selectedImage,
-            analysisFeatures: ['texture', 'pores', 'redness', 'spots', 'moisture', 'radiance', 'skin_age', 'skin_type'],
+            analysisFeatures: ['texture', 'pore', 'redness', 'spot', 'moisture', 'radiance', 'wrinkle', 'skin_age', 'skin_type'],
             userExplicitConsentConfirmed: true
           })
         });

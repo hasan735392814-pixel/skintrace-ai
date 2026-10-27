@@ -191,7 +191,7 @@ export const JourneyView: React.FC<JourneyViewProps> = ({
                   <div className="relative aspect-4/3 bg-[#F0EBE2] overflow-hidden">
                     <img
                       src={item.imageUrl}
-                      alt="Milestone thumbnail"
+                      alt="Skin analysis preview"
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                     />
