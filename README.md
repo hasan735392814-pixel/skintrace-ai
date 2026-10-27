@@ -36,8 +36,9 @@ Traditional skincare consumers struggle with two key problems:
 | **Longitudinal Progress Charts** | **Implemented** | Responsive Recharts time-series chart with multi-metric segment switching (Overall Vitality, Texture, Pores, Redness, Tone, Spots). |
 | **Daily Ritual Tracker (AM & PM)** | **Implemented** | Independent Morning and Evening completion states, accurate daily progress ring, midnight reset logic, custom step creation, and one-click additions from analysis. |
 | **Offline Data Management** | **Implemented** | Complete data storage in `localStorage`, one-click JSON backup export, individual milestone deletion, and secure full-wipe confirmation dialog. |
-| **YouCam Server Scaffold** | **Implemented** | Typed server module (`/src/server/youcamService.ts`) mirroring the official Perfect Corp API contract, with active `DEMO_MODE=true` server gate. |
-| **Live YouCam API Network Polling** | *Planned (Gated)* | Live outbound task creation (`POST /v1.0/skin_analysis`) and polling loop (`GET /v1.0/skin_analysis/{id}`) is intentionally gated with a safety exception to prevent credit consumption. |
+| **YouCam v2.1 Server Integration** | **Implemented** | Official YouCam Skin AI v2.1 client (`/src/server/youcamService.ts`) with image validation (max 10MB, JPEG/PNG/WebP), task payload construction, polling loop, and schema transformer. |
+| **Zero-Credit Safeguard** | **Implemented** | `DEMO_MODE=true` hard-coded default on client and server. 40 YouCam bonus credits preserved with 0 units consumed. Top indicator banner with audit modal. |
+| **Live YouCam API Execution** | *Gated for Safety* | Ready for production activation. Outbound HTTP requests to `https://yce-api-01.makeupar.com` are intercepted by the `DEMO_MODE=true` safety shutter to prevent accidental consumption. |
 | **eCommerce Virtual Try-On (VTO)** | *Planned (Roadmap)* | Integration with Perfect Corp's Virtual Makeup and Foundation Shade Matcher to preview tinted SPF and complexion products calibrated to the user's analyzed undertone. |
 
 ---
@@ -52,7 +53,7 @@ Traditional skincare consumers struggle with two key problems:
 │  - Recharts Progress Visualizer                             │
 │  - HTML5 Canvas & getUserMedia Camera Feed                  │
 │  - LocalStorage Engine (Preferences, Routines, Milestones)  │
-│  - Deterministic Simulation Engine (Zero External Calls)    │
+│  - Deterministic Simulation Engine & Local Fallback         │
 └──────────────────────────────┬──────────────────────────────┘
                                │
             Internal Local API │ /api/status, /api/analyze
@@ -62,16 +63,19 @@ Traditional skincare consumers struggle with two key problems:
 │  - Vite Middleware Server (server.ts)                       │
 │  - System Status Prober (GET /api/status)                   │
 │  - Guarded Analysis Endpoint (POST /api/analyze)            │
-│  - DEMO_MODE=true Safety Barrier (Rejects Unsafe Calls)     │
+│  - Image Pre-Validator (10MB limit, JPEG/PNG/WebP)          │
+│  - YouCam v2.1 Task Generator & Result Transformer          │
+│  - DEMO_MODE=true Safety Barrier (Zero API Consumption)     │
 │  - YOUCAM_API_KEY Isolated in Server-Side Memory Only       │
 └──────────────────────────────┬──────────────────────────────┘
                                │
-                               │ [GATED IN DEMO MODE]
+                               │ [GATED IN DEMO MODE — 0 CALLS]
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│            OFFICIAL PERFECT CORP YOUCAM SKIN AI API         │
-│  - POST https://api.perfectcorp.com/v1.0/skin_analysis      │
-│  - GET  https://api.perfectcorp.com/v1.0/skin_analysis/{id} │
+│            OFFICIAL PERFECT CORP YOUCAM SKIN AI v2.1        │
+│  - Host: https://yce-api-01.makeupar.com                    │
+│  - Task: POST /s2s/v2.1/task/skin-analysis                  │
+│  - Poll: GET  /s2s/v2.1/task/skin-analysis/{task_id}        │
 │  - 40 Evaluation Bonus Units 100% Intact & Protected        │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -104,40 +108,67 @@ The server will start on `http://0.0.0.0:3000` with `DEMO_MODE=true` active by d
 
 ---
 
-## 5. Live YouCam API Integration Blueprint (Future Production Setup)
+## 5. Official YouCam Skin AI API v2.1 Integration
 
-To transition from the current safety-gated build to live YouCam API calls, the following exact steps and files must be updated based on the [Official Perfect Corp AI Skin Analysis Documentation](https://docs.perfectcorp.com/reference/ai_skin_analysis):
+SKINTRACE AI includes a production-ready, typed integration adhering to the [Official Perfect Corp AI Skin Analysis v2.1 Documentation](https://docs.perfectcorp.com/reference/ai_skin_analysis/v2.1).
 
-### Documented Official API Endpoints (Perfect Corp):
+### Documented Official API Specification:
 - **Base Domain:** `https://yce-api-01.makeupar.com`
-- **Step 1 (File Target Initialization):** `POST https://yce-api-01.makeupar.com/s2s/v2.0/file`
-  - **Headers:** `Authorization: Bearer <YOUCAM_API_KEY>`, `Content-Type: application/json`
-  - **Output:** Returns pre-signed upload URL and `file_id`. Client/server streams binary image data directly to target.
-- **Step 2 (Task Creation):** `POST https://yce-api-01.makeupar.com/s2s/v2.0/task/skin-analysis`
-  - **Headers:** `Authorization: Bearer <YOUCAM_API_KEY>`, `Content-Type: application/json`
-  - **Body Schema:**
+- **Authentication:** `Authorization: Bearer <YOUCAM_API_KEY>` (server-side only)
+- **Step 1 — Input Validation (`YouCamService.validateImageInput`):**
+  - Enforces JPEG, PNG, or WebP formats.
+  - Enforces maximum file size limit of 10MB.
+- **Step 2 — File Registration & Binary Upload (For Local Images):**
+  - **Endpoint:** `POST https://yce-api-01.makeupar.com/s2s/v2.0/file`
+  - **Payload:**
     ```json
     {
-      "src_file": {
-        "file_id": "<UPLOADED_FILE_ID>"
+      "files": [
+        {
+          "content_type": "image/jpeg",
+          "file_name": "selfie.jpg",
+          "file_size": 1048576
+        }
+      ]
+    }
+    ```
+  - **Upload:** Sends image binary buffer via HTTP `PUT` to the returned presigned storage URL (`requests[0].url`).
+- **Step 3 — Task Creation:**
+  - **Endpoint:** `POST https://yce-api-01.makeupar.com/s2s/v2.1/task/skin-analysis`
+  - **Payload (Uploaded File):**
+    ```json
+    {
+      "features": ["texture", "pores", "redness", "spots", "moisture", "radiance", "skin_age", "skin_type"],
+      "image": {
+        "file_id": "<REGISTERED_FILE_ID>"
       }
     }
     ```
-  - **Response Schema:** `{ "task_id": "string", "task_status": "pending" }`
-- **Step 3 (Status Polling):** `GET https://yce-api-01.makeupar.com/s2s/v2.0/task/skin-analysis/{task_id}`
-  - **Polling Loop:** Queries until `task_status === "success"` (returns metrics, skin age, and overlay coordinates) or `"error"`.
+  - **Payload (Public URL Mode):**
+    ```json
+    {
+      "features": ["texture", "pores", "redness", "spots", "moisture", "radiance", "skin_age", "skin_type"],
+      "image": {
+        "url": "https://example.com/photo.jpg"
+      }
+    }
+    ```
+  - **Response:** `{ "task_id": "string", "status": "created" }`
+- **Step 4 — Task Status Polling:**
+  - **Endpoint:** `GET https://yce-api-01.makeupar.com/s2s/v2.1/task/skin-analysis/{task_id}`
+  - **Loop:** Polls with safe backoff (1.5s interval, up to 30s timeout) until `status: "success"`.
+- **Step 5 — Schema Transformation (`YouCamService.mapYouCamV21ToSkinTrace`):**
+  - Converts raw YouCam feature scores (0-100) and severity levels into the internal `SkinAnalysisResult` model.
 
-### Exact Files to Modify for Live Activation:
-1. **`.env`:**
-   - Change `DEMO_MODE="false"`
-   - Replace `YOUCAM_API_KEY="demo-placeholder"` with verified production Perfect Corp key.
-2. **`/src/server/youcamService.ts`:**
-   - In `analyzeSkin()`: Replace the safety exception with the 3-step pipeline: (a) file registration `POST /s2s/v2.0/file`, (b) binary upload, (c) task trigger `POST /s2s/v2.0/task/skin-analysis`.
-   - Implement exponential backoff polling on `GET /s2s/v2.0/task/skin-analysis/{task_id}` until status is `success`.
-   - Map real Perfect Corp metric scores into `SkinAnalysisResult`.
-3. **`/src/components/AnalysisView.tsx`:**
-   - Hook into live endpoint with an explicit confirmation dialog informing the user that 1 account credit will be consumed.
-   - Transmit image bytes securely through the `/api/analyze` server proxy.
+### Activating Live API Mode (When Ready):
+To disengage the safety shutter and execute real calls against your Perfect Corp account:
+1. Update `.env`:
+   ```bash
+   DEMO_MODE="false"
+   YOUCAM_API_KEY="<YOUR_OFFICIAL_PERFECT_CORP_API_KEY>"
+   ```
+2. Restart the Node server: `npm run dev`
+3. In the UI, run a scan. The system will dispatch through `POST /s2s/v2.1/task/skin-analysis` and display the live result with the `[YOUCAM API v2.1 LIVE]` badge and Task ID.
 
 ---
 
@@ -155,9 +186,14 @@ To transition from the current safety-gated build to live YouCam API calls, the 
 
 ---
 
-## 7. Devpost Submission Screenshots Checklist
+## 7. Devpost Submission Screenshots & Video Assets
 
-Capture and upload these 7 screenshots for your Devpost project gallery:
+The repository includes a ready-to-submit presentation package captured directly from the live application:
+- **Playable Demo Video:** `presentation/video/skintrace-ai-demo.mp4` (1080p, 2:34 duration, synchronized narration & captions).
+- **Presentation Inventory:** `presentation/PRESENTATION-REPORT.md` (complete catalog of scenes, resolution, and timestamps).
+- **Pre-captured Screenshots:** 31 full-resolution PNG images are available in `presentation/screenshots/` (covering desktop, mobile, and Arabic RTL views).
+
+Recommended core screenshots for your Devpost project gallery:
 
 1. **`01_hero_editorial.png`**  
    *View:* Landing Page Hero  

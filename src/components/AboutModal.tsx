@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { X, Sparkles, ShieldCheck, ShoppingBag, Terminal } from 'lucide-react';
+import { X, ShieldCheck, ShoppingBag, Terminal } from 'lucide-react';
 import { Language } from '../types/skincare';
 import { translations } from '../i18n/translations';
 
@@ -32,9 +32,11 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, lang })
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 border-b border-[#EAE3D6] pb-4">
-          <div className="w-10 h-10 rounded-2xl bg-[#1B382B] flex items-center justify-center text-[#D7C4A7]">
-            <Sparkles className="w-5 h-5" />
-          </div>
+          <img
+            src="/skintrace-icon.png"
+            alt="SKINTRACE AI"
+            className="w-11 h-11 rounded-2xl object-cover shadow-xs border border-[#1B382B]/10"
+          />
           <div>
             <h2 className="font-editorial text-2xl font-bold text-[#1B382B]">
               SKINTRACE AI

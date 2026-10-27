@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Sparkles, Globe, Menu, X } from 'lucide-react';
+import { Globe, Menu, X } from 'lucide-react';
 import { NavigationPage, Language } from '../types/skincare';
 import { translations } from '../i18n/translations';
 
@@ -47,14 +47,16 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="sticky top-0 z-40 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#EDE6DC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-8">
         
-        {/* Zone 1: Single text element wordmark */}
+        {/* Zone 1: Single text element wordmark with official app icon */}
         <button
           onClick={() => handleNavClick('landing')}
           className="flex items-center gap-2.5 text-left rtl:text-right group cursor-pointer whitespace-nowrap shrink-0"
         >
-          <div className="w-8 h-8 rounded-full bg-[#1B382B] flex items-center justify-center text-[#D7C4A7] shadow-xs group-hover:scale-105 transition-transform">
-            <Sparkles className="w-4 h-4" />
-          </div>
+          <img
+            src="/skintrace-icon.png"
+            alt="SKINTRACE AI"
+            className="w-9 h-9 rounded-xl object-cover shadow-xs border border-[#1B382B]/10 group-hover:scale-105 transition-transform"
+          />
           <div className="flex flex-col">
             <span className="font-editorial text-2xl font-bold tracking-tight text-[#1B382B] leading-none">
               SKINTRACE AI

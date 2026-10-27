@@ -45,8 +45,32 @@ async function startServer() {
       const response = await YouCamService.analyzeSkin(req.body || {});
       res.json(response);
     } catch (err: any) {
-      res.status(403).json({
-        error: err.message || 'Analysis request rejected by safety gate',
+      const rawMessage = (err?.message || '').trim();
+      let statusCode = 500;
+      let errorCode = 'INTERNAL_ERROR';
+      let clientMessage = 'An unexpected processing error occurred during skin analysis.';
+
+      if (rawMessage.startsWith('VALIDATION_ERROR:')) {
+        statusCode = 400;
+        errorCode = 'INVALID_INPUT';
+        clientMessage = rawMessage.replace('VALIDATION_ERROR:', '').trim();
+      } else if (rawMessage.startsWith('CONSENT_REQUIRED:')) {
+        statusCode = 403;
+        errorCode = 'CONSENT_REQUIRED';
+        clientMessage = rawMessage.replace('CONSENT_REQUIRED:', '').trim();
+      } else if (rawMessage.startsWith('AUTH_ERROR:')) {
+        statusCode = 403;
+        errorCode = 'UNAUTHORIZED';
+        clientMessage = 'Authorization failed. Please ensure permissions are granted.';
+      } else if (rawMessage.startsWith('CONFIG_ERROR:')) {
+        statusCode = 500;
+        errorCode = 'CONFIGURATION_ERROR';
+        clientMessage = 'Service configuration error. Safe fallback active.';
+      }
+
+      res.status(statusCode).json({
+        error: clientMessage,
+        code: errorCode,
         safetyBlocked: true,
         unitsConsumed: 0
       });

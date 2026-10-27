@@ -1,0 +1,22 @@
+{
+  "name": "SKINTRACE AI — Premium AI Skincare Tracking Platform",
+  "short_name": "SkinTrace AI",
+  "description": "Understand your skin, track visible progress over time, and maintain daily skincare routines with a privacy-first, zero-API-consumption demo experience.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF8F5",
+  "theme_color": "#1B382B",
+  "icons": [
+    {
+      "src": "/skintrace-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}

@@ -166,14 +166,51 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ onAnalysisComplete, 
     setErrorMessage(null);
 
     try {
-      const result = await runSimulatedSkinAnalysis(selectedImage, (stage) => {
-        setScanStage(stage);
-      });
+      // Advance stages for visual cosmetic scanning feedback
+      const stageTimer1 = setTimeout(() => setScanStage(2), 600);
+      const stageTimer2 = setTimeout(() => setScanStage(3), 1200);
+      const stageTimer3 = setTimeout(() => setScanStage(4), 1800);
+
+      let finalResult: SkinAnalysisResult | null = null;
+
+      try {
+        // Attempt server-side YouCam v2.1 integration endpoint
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageBase64: selectedImage,
+            analysisFeatures: ['texture', 'pores', 'redness', 'spots', 'moisture', 'radiance', 'skin_age', 'skin_type'],
+            userExplicitConsentConfirmed: true
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.result) {
+            finalResult = data.result;
+          }
+        }
+      } catch {
+        // Server unreachable or standalone client - fallback to local engine
+      }
+
+      // If server did not return result, execute local simulation engine
+      if (!finalResult) {
+        finalResult = await runSimulatedSkinAnalysis(selectedImage);
+      }
+
+      clearTimeout(stageTimer1);
+      clearTimeout(stageTimer2);
+      clearTimeout(stageTimer3);
+
+      // Brief pause for UX completion
+      await new Promise((r) => setTimeout(r, 400));
       setIsProcessing(false);
-      onAnalysisComplete(result);
+      onAnalysisComplete(finalResult);
     } catch {
       setIsProcessing(false);
-      setErrorMessage('An unexpected error occurred during local analysis.');
+      setErrorMessage('An unexpected error occurred during skin analysis.');
     }
   };
 

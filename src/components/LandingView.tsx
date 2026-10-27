@@ -175,7 +175,17 @@ export const LandingView: React.FC<LandingViewProps> = ({ onNavigate, lang }) =>
       </section>
 
       {/* Non-Medical Disclaimer Footer Callout */}
-      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-[#707C74] space-y-2 border-t border-[#E8DFD1] pt-8">
+      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-[#707C74] space-y-3 border-t border-[#E8DFD1] pt-8">
+        <div className="flex items-center justify-center gap-2">
+          <img
+            src="/skintrace-icon.png"
+            alt="SKINTRACE AI"
+            className="w-6 h-6 rounded-md object-cover opacity-85"
+          />
+          <span className="font-editorial text-sm font-semibold tracking-wide text-[#1B382B]">
+            SKINTRACE AI
+          </span>
+        </div>
         <p className="max-w-2xl mx-auto leading-relaxed">
           {t.common.medicalDisclaimer}
         </p>

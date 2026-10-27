@@ -73,27 +73,61 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
         </div>
       </div>
 
-      {/* Mandatory Demo Mode Warning Banner */}
-      <div className="p-4 rounded-2xl bg-[#F6F4EE] border border-[#DDD5C7] text-left rtl:text-right flex items-start gap-3">
-        <div className="w-6 h-6 rounded-full bg-[#1B382B] text-[#D7C4A7] flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">
-          !
+      {/* YouCam v2.1 Integration & Mode Indicator Banner */}
+      <div className={`p-4 rounded-2xl border text-left rtl:text-right flex items-start gap-3 transition-colors ${
+        result.isRealApiResult 
+          ? 'bg-[#EBF5EF] border-[#BFDDCB]' 
+          : 'bg-[#F6F4EE] border-[#DDD5C7]'
+      }`}>
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold ${
+          result.isRealApiResult
+            ? 'bg-[#1B382B] text-white'
+            : 'bg-[#1B382B] text-[#D7C4A7]'
+        }`}>
+          {result.isRealApiResult ? '✓' : '!'}
         </div>
-        <div className="space-y-1 text-xs">
-          <div className="font-semibold text-[#1B382B] flex items-center gap-2">
-            <span className="font-mono bg-[#1B382B] text-white px-2 py-0.5 rounded text-[10px]">
-              DEMO DATA
+        <div className="space-y-1.5 text-xs flex-1">
+          <div className="font-semibold text-[#1B382B] flex flex-wrap items-center gap-2">
+            <span className={`font-mono text-white px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${
+              result.isRealApiResult ? 'bg-[#1B382B]' : 'bg-[#705437]'
+            }`}>
+              {result.isRealApiResult ? 'YOUCAM API v2.1 LIVE' : 'DEMO DATA — SIMULATED'}
             </span>
-            <span>{t.common.simulatedResult}</span>
-            <span className="font-mono text-[10px] bg-[#E2EBE5] text-[#1B382B] px-2 py-0.5 rounded border border-[#CCD8D0]">
-              0 API Units Consumed
+            <span>
+              {result.isRealApiResult ? 'Verified YouCam Skin Analysis Result' : t.common.simulatedResult}
+            </span>
+            <span className="font-mono text-[10px] bg-white text-[#1B382B] px-2 py-0.5 rounded border border-[#CCD8D0]">
+              {result.isRealApiResult ? '1 Unit Billed' : '0 API Units Consumed (Safeguard Active)'}
             </span>
           </div>
+
           <p className="text-[#56625B] leading-relaxed">
-            {t.results.simulatedAlert}
+            {result.isRealApiResult
+              ? `Real-time biometric assessment processed through Perfect Corp YouCam Skin Analysis API v2.1. Task ID: ${result.youcamTaskId || 'unknown'}.`
+              : t.results.simulatedAlert}
           </p>
-          <p className="text-[#717E77] text-[11px] italic">
-            Notice: These scores are simulated demonstration data. They were not derived from analyzing the uploaded photo and do not represent actual biological skin measurements.
-          </p>
+
+          {!result.isRealApiResult && (
+            <p className="text-[#717E77] text-[11px] italic">
+              Notice: These scores are simulated demonstration data formatted to the official YouCam v2.1 API contract. They were not derived from analyzing the uploaded photo and do not represent actual biological skin measurements.
+            </p>
+          )}
+
+          {/* Collapsible Telemetry / YouCam Specification Details */}
+          <details className="mt-2 text-[11px] text-[#4A5750]">
+            <summary className="cursor-pointer font-medium text-[#1B382B] hover:underline inline-flex items-center gap-1">
+              <span>View YouCam Skin Analysis v2.1 API Telemetry & Payload Contract</span>
+            </summary>
+            <div className="mt-2 p-3 bg-white/80 rounded-xl border border-[#DDD5C7] font-mono text-[10px] space-y-1 text-[#2D3B33] overflow-x-auto">
+              <div><span className="text-[#717E77]">Provider:</span> YouCam Skin AI v2.1 (Perfect Corp)</div>
+              <div><span className="text-[#717E77]">Target Host:</span> https://yce-api-01.makeupar.com</div>
+              <div><span className="text-[#717E77]">Task Creation Endpoint:</span> POST /s2s/v2.1/task/skin-analysis</div>
+              <div><span className="text-[#717E77]">Task Polling Endpoint:</span> GET /s2s/v2.1/task/skin-analysis/{'{task_id}'}</div>
+              <div><span className="text-[#717E77]">Task ID:</span> {result.youcamTaskId || 'yc21_demo_simulated_stream'}</div>
+              <div><span className="text-[#717E77]">Features Evaluated:</span> texture, pores, redness, spots, moisture, radiance, skin_age, skin_type</div>
+              <div><span className="text-[#717E77]">Safe Shutter Status:</span> {result.isRealApiResult ? 'DISENGAGED (Live API Mode)' : 'ENGAGED (DEMO_MODE=true Safeguard)'}</div>
+            </div>
+          </details>
         </div>
       </div>
 

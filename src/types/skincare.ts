@@ -43,6 +43,12 @@ export interface SkinAnalysisResult {
     productCategory: string;
     reason: string;
   }>;
+  // YouCam v2.1 Integration & Verification Metadata
+  dataSource?: 'youcam_v2.1_live' | 'youcam_v2.1_simulated' | 'local_demo';
+  youcamTaskId?: string;
+  isRealApiResult?: boolean;
+  apiProvider?: string;
+  rawApiFeatures?: Record<string, { score: number; level?: string }>;
 }
 
 export interface RoutineStep {
