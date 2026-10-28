@@ -12,6 +12,15 @@ import { YouCamService } from './src/server/youcamService.ts';
 
 dotenv.config();
 
+// In production, default DEMO_MODE to 'false' if a valid YOUCAM_API_KEY secret is present
+if (process.env.DEMO_MODE === undefined) {
+  const configuredKey = (process.env.YOUCAM_API_KEY || process.env.YOUCAM_SECRET_KEY || '').trim();
+  const hasKey = configuredKey.length > 0 && configuredKey !== 'demo-placeholder';
+  if (process.env.NODE_ENV === 'production' && hasKey) {
+    process.env.DEMO_MODE = 'false';
+  }
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
